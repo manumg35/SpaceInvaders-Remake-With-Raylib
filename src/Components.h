@@ -25,3 +25,9 @@ struct RectColliderComponent : public Component
     RectColliderComponent(float x, float y, float width, float height) : rect({x, y, width, height}) {};
     Rectangle rect;
 };
+
+struct BulletComponent : public Component
+{
+    BulletComponent(int Ydir) : dir(Ydir) {};
+    int dir;
+};

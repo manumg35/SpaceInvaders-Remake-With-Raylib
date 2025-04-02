@@ -26,9 +26,6 @@ public:
     //     }
     // }
 
-    int GetEntityID(){ return id; }
-
-
     template <typename T, typename... Args>
     T& AddComponent(Args&&... args)
     {

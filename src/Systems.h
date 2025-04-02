@@ -9,11 +9,11 @@ public:
     void HandleInput(Entity& player)
     {
         auto * mov = player.GetComponent<MovementComponent>();
-        
+
         if(IsKeyDown(KEY_D))
-            mov->velocity.x = 200;
+            mov->velocity.x = 150;
         else if(IsKeyDown(KEY_A))
-            mov->velocity.x = -200;
+            mov->velocity.x = -150;
         else
             mov->velocity.x = 0;
 
