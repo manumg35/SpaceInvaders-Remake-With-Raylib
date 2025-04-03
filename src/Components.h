@@ -14,16 +14,27 @@ struct MovementComponent : public Component
     Vector2 velocity;
 };
 
-struct SpriteComponent : public Component
+struct RenderComponent : public Component
 {
-    SpriteComponent(Texture2D text) : texture(text) {};
+    RenderComponent(Texture2D text, Color tint = WHITE) : texture(text), textureTint(tint) {};
     Texture2D texture;
+    Color textureTint;
 };
 
-struct RectColliderComponent : public Component
+struct ColliderComponent : public Component
 {
-    RectColliderComponent(float x, float y, float width, float height) : rect({x, y, width, height}) {};
+    ColliderComponent(float x, float y, float width, float height, float paddR, float paddBot) 
+        : rect({x, y, width, height}), paddingRight(paddR), paddingBottom(paddBot) {};
     Rectangle rect;
+    float paddingRight;
+    float paddingBottom;
+};
+
+struct AIComponent : public Component
+{
+    AIComponent() = default;
+    static inline int xDir{1};
+    static inline float currentSpeed{1.f};    
 };
 
 struct BulletComponent : public Component
