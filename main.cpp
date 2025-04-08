@@ -11,8 +11,6 @@ int main()
     SetTargetFPS(60);
 
     std::vector<Entity> entities;
-    std::vector<Entity> enemies;
-    std::vector<Entity> bullets;
     
     Entity player;
     player.AddComponent<TransformComponent>(200,500);
@@ -32,17 +30,25 @@ int main()
             enemy.AddComponent<AIComponent>();
             enemy.AddComponent<MovementComponent>(0,0);
             enemy.AddComponent<RenderComponent>(LoadTexture("textures/enemy1.png"));
-            enemies.push_back(enemy);
+            entities.push_back(std::move(enemy));
         }
     }
 
     Entity bullet;
-    bullet.AddComponent<TransformComponent>(200, 100);
+    bullet.AddComponent<TransformComponent>(0, 0);
     bullet.AddComponent<ColliderComponent>(0, 0, 5, 12, 14, 10);
-    bullet.AddComponent<MovementComponent>(0, -100);
-    bullet.AddComponent<BulletComponent>(-1);
+    bullet.AddComponent<MovementComponent>(0, -500);
+    bullet.AddComponent<BulletComponent>();
     bullet.AddComponent<RenderComponent>(LoadTexture("textures/bullet.png"));
-    bullets.push_back(bullet);
+    entities.push_back(bullet);
+
+    Entity bullet2;
+    bullet2.AddComponent<TransformComponent>(0, 0);
+    bullet2.AddComponent<ColliderComponent>(0, 0, 5, 12, 14, 10);
+    bullet2.AddComponent<MovementComponent>(0, -500);
+    bullet2.AddComponent<BulletComponent>();
+    bullet2.AddComponent<RenderComponent>(LoadTexture("textures/bullet.png"));
+    entities.push_back(bullet2);
 
 
     RenderSystem renderSystem;
@@ -50,31 +56,38 @@ int main()
     MovementSystem movementSystem;
     AISystem aiSystem;
     ColliderSystem colliderSystem;
+    BulletSystem bulletSystem;
+    PlayerControlSystem pcSystem;
 
+
+    std::vector<ShootEvent> shootEvents;
     while(!WindowShouldClose())
     {
         float deltaTime = GetFrameTime();
 
+        //INPUT
+        pcSystem.Update(player, inputSystem.HandleInput(), shootEvents);
 
-        inputSystem.HandleInput(player, bullet);
+        //AI
+        aiSystem.Update(entities);
 
-        aiSystem.Update(enemies);
+        //MANAGE BULLETS
+        bulletSystem.SpawBullets(entities, shootEvents);
+        bulletSystem.CheckShouldBeActive(entities);
 
+        //MOVEMENT
         movementSystem.Update(entities, deltaTime);
-        movementSystem.Update(enemies, deltaTime);
-        movementSystem.Update(bullets, deltaTime);
 
-        colliderSystem.UpdateColliders(enemies);
-        colliderSystem.UpdateColliders(bullets);
+        //COLLISIONS
+        colliderSystem.UpdateColliders(entities);
 
-        colliderSystem.CheckCollisions(bullets, enemies);
+        //colliderSystem.CheckCollisions(bullets, enemies);
 
         BeginDrawing();
         ClearBackground(BLACK);
 
+        //RENDER
         renderSystem.Render(entities);
-        renderSystem.Render(enemies);
-        renderSystem.Render(bullets);
 
         DrawText(std::to_string(GetFPS()).c_str(), 0, 0, 18, WHITE);
         // DrawText(typeid(RenderSystem).name(), 0, 0, 18, WHITE);

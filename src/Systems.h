@@ -3,33 +3,109 @@
 #include "ECS.h"
 #include "Components.h"
 
+struct ShootEvent
+{
+    Vector2 position;
+    int yDirection;
+};
+
+enum class PlayerCommand
+{
+    MoveLeft,
+    MoveRight,
+    Shoot,
+    Stop
+};
+
 class InputSystem
 {
 public:
-    void HandleInput(Entity& player, Entity& bullet)
+    std::vector<PlayerCommand> HandleInput(/*Entity& player, std::vector<Entity>& bullets*/)
+
     {
-        auto * mov = player.GetComponent<MovementComponent>();
-        auto * pos = player.GetComponent<TransformComponent>();
+        /*
+        auto* mov = player.GetComponent<MovementComponent>();
+        auto* pos = player.GetComponent<TransformComponent>();
 
 
-        auto * bul = bullet.GetComponent<BulletComponent>();
-        auto * bulPos = bullet.GetComponent<TransformComponent>();
-
+        
         if(IsKeyDown(KEY_D))
             mov->velocity.x = 150;
         else if(IsKeyDown(KEY_A))
             mov->velocity.x = -150;
         else
             mov->velocity.x = 0;
-
         if(IsKeyPressed(KEY_SPACE))
         {
-            if(bul && bulPos)
+            for(auto& bullet: bullets)
             {
+                auto* bulComp = bullet.GetComponent<BulletComponent>();
+
+                if(bulComp->isActive)
+                    continue;
+
+                bulComp->isActive = true;
+
+                auto* bulPos = bullet.GetComponent<TransformComponent>();
+                auto* bulMov = bullet.GetComponent<MovementComponent>();
+                
                 bulPos->position.x = pos->position.x;
                 bulPos->position.y = pos->position.y;
+                
+                bulMov->velocity.y = -500;
+                
+                break;
+            }
+        }
+    }
+    */
+        std::vector<PlayerCommand> commands;
 
+        if(IsKeyDown(KEY_D))
+            commands.push_back(PlayerCommand::MoveRight);
+        else if(IsKeyDown(KEY_A))
+            commands.push_back(PlayerCommand::MoveLeft);
+        else
+            commands.push_back(PlayerCommand::Stop);
 
+        if(IsKeyPressed(KEY_SPACE))
+            commands.push_back(PlayerCommand::Shoot);
+        
+        return commands;
+    }
+};
+
+class PlayerControlSystem
+{
+public:
+    void Update(Entity& player, std::vector<PlayerCommand> commands, std::vector<ShootEvent>& shootEvents)
+    {
+        auto* mov = player.GetComponent<MovementComponent>();
+        auto* pos = player.GetComponent<TransformComponent>();
+
+        //TRY using the commands pattern?
+        for(auto& command : commands)
+        {
+            switch (command)
+            {
+            case PlayerCommand::MoveRight:
+                mov->velocity.x = 150;
+                break;
+            
+            case PlayerCommand::MoveLeft:
+                mov->velocity.x = -150;
+                break;
+
+            case PlayerCommand::Stop:
+                mov->velocity.x = 0;
+                break;
+
+            case PlayerCommand::Shoot:
+                shootEvents.push_back({pos->position, -1});
+                break;
+
+            default:
+                break;
             }
         }
     }
@@ -45,10 +121,13 @@ public:
             auto* pos = entity.GetComponent<TransformComponent>();
             auto* col = entity.GetComponent<ColliderComponent>();
 
+            if(!pos || !col)
+                continue;
             col->rect.x = pos->position.x + col->paddingRight;
             col->rect.y = pos->position.y + col->paddingBottom;
 
-            DrawRectangle(col->rect.x, col->rect.y, col->rect.width, col->rect.height, BLUE);
+            //DEBUG COLLIDER
+            //DrawRectangle(col->rect.x, col->rect.y, col->rect.width, col->rect.height, BLUE);
         }
 
     }
@@ -76,17 +155,17 @@ public:
 class AISystem
 {
 public:
-    void Update(std::vector<Entity>& enemies)
+    void Update(std::vector<Entity>& entities)
     {
         float maxX{-1.f};
         float minX{450.f};
         float minY{600.f};
 
-        for(auto& enemy : enemies)
+        for(auto& entity : entities)
         {
-            auto* pos = enemy.GetComponent<TransformComponent>();
-            auto* mov = enemy.GetComponent<MovementComponent>();
-            auto* ai = enemy.GetComponent<AIComponent>();
+            auto* pos = entity.GetComponent<TransformComponent>();
+            auto* mov = entity.GetComponent<MovementComponent>();
+            auto* ai = entity.GetComponent<AIComponent>();
 
             if(pos && mov && ai)
             {
@@ -96,8 +175,9 @@ public:
                 minY = std::min(minY, pos->position.y);
 
                 if(maxX > 368)
+                {
                     ai->xDir = -1;
-                
+                }
                 if(minX < 0)
                     ai->xDir = 1;
 
@@ -120,6 +200,55 @@ public:
             {
                 pos->position.x += mov->velocity.x * deltaTime;
                 pos->position.y += mov->velocity.y * deltaTime;
+            }
+        }
+    }
+};
+
+class BulletSystem
+{
+public:
+
+    void SpawBullets(std::vector<Entity>& bullets, std::vector<ShootEvent>& shootEvents)
+    {
+        for(auto& shootEv: shootEvents)
+        {
+            for(auto& bullet: bullets)
+            {
+                auto* bulComp = bullet.GetComponent<BulletComponent>();
+
+                if(!bulComp)
+                    continue;
+                if(bulComp->isActive)
+                    continue;
+
+                bulComp->isActive = true;
+
+                auto* bulPos = bullet.GetComponent<TransformComponent>();
+                auto* bulMov = bullet.GetComponent<MovementComponent>();
+                
+                bulPos->position = shootEv.position;           
+                bulMov->velocity.y = 500 * shootEv.yDirection;
+                
+                break;
+            }
+        }
+        shootEvents.clear();
+    }
+
+    void CheckShouldBeActive(std::vector<Entity>& bullets)
+    {
+        for (auto& bullet : bullets) {
+            auto* pos = bullet.GetComponent<TransformComponent>();
+            auto* bullComp = bullet.GetComponent<BulletComponent>();
+            auto* mov = bullet.GetComponent<MovementComponent>();
+
+            if(!bullComp || !pos || !mov)
+                continue;
+            if(pos->position.y < -50 || pos->position.y > 600)
+            {
+                bullComp->isActive = false;
+                mov->velocity.y = 0;
             }
         }
     }

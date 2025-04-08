@@ -39,6 +39,6 @@ struct AIComponent : public Component
 
 struct BulletComponent : public Component
 {
-    BulletComponent(int Ydir) : dir(Ydir) {};
-    int dir;
+    BulletComponent(){};
+    bool isActive{};
 };

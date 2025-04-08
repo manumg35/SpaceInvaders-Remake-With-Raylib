@@ -10,9 +10,8 @@ public:
     virtual ~Component() = default;
 };
 
-
 class Entity
-{
+{ 
 public:
 
     Entity(): id(nextEntityID++) {};
