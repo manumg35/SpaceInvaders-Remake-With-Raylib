@@ -61,6 +61,8 @@ int main()
 
 
     std::vector<ShootEvent> shootEvents;
+
+    
     while(!WindowShouldClose())
     {
         float deltaTime = GetFrameTime();
@@ -72,9 +74,8 @@ int main()
         aiSystem.Update(entities);
 
         //MANAGE BULLETS
-        bulletSystem.SpawBullets(entities, shootEvents);
-        bulletSystem.CheckShouldBeActive(entities);
-
+        bulletSystem.Update(entities, shootEvents);
+        
         //MOVEMENT
         movementSystem.Update(entities, deltaTime);
 

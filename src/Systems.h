@@ -209,13 +209,16 @@ class BulletSystem
 {
 public:
 
-    void SpawBullets(std::vector<Entity>& bullets, std::vector<ShootEvent>& shootEvents)
+    void Update(std::vector<Entity>& bullets, std::vector<ShootEvent>& shootEvents)
     {
+        //check if should spawn new bullets
         for(auto& shootEv: shootEvents)
         {
             for(auto& bullet: bullets)
             {
                 auto* bulComp = bullet.GetComponent<BulletComponent>();
+                auto* bulPos = bullet.GetComponent<TransformComponent>();
+                auto* bulMov = bullet.GetComponent<MovementComponent>();
 
                 if(!bulComp)
                     continue;
@@ -223,9 +226,6 @@ public:
                     continue;
 
                 bulComp->isActive = true;
-
-                auto* bulPos = bullet.GetComponent<TransformComponent>();
-                auto* bulMov = bullet.GetComponent<MovementComponent>();
                 
                 bulPos->position = shootEv.position;           
                 bulMov->velocity.y = 500 * shootEv.yDirection;
@@ -234,23 +234,22 @@ public:
             }
         }
         shootEvents.clear();
-    }
 
-    void CheckShouldBeActive(std::vector<Entity>& bullets)
-    {
         for (auto& bullet : bullets) {
-            auto* pos = bullet.GetComponent<TransformComponent>();
-            auto* bullComp = bullet.GetComponent<BulletComponent>();
-            auto* mov = bullet.GetComponent<MovementComponent>();
+            auto* bulPos = bullet.GetComponent<TransformComponent>();
+            auto* bulComp = bullet.GetComponent<BulletComponent>();
+            auto* bulMov = bullet.GetComponent<MovementComponent>();
 
-            if(!bullComp || !pos || !mov)
+            if(!bulComp || !bulPos || !bulMov)
                 continue;
-            if(pos->position.y < -50 || pos->position.y > 600)
+            
+            if(bulPos->position.y < -50 || bulPos->position.y > 600)
             {
-                bullComp->isActive = false;
-                mov->velocity.y = 0;
+                bulComp->isActive = false;
+                bulMov->velocity.y = 0;
             }
         }
+
     }
 };
 
