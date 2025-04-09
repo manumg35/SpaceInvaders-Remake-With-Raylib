@@ -21,44 +21,7 @@ class InputSystem
 {
 public:
     std::vector<PlayerCommand> HandleInput(/*Entity& player, std::vector<Entity>& bullets*/)
-
     {
-        /*
-        auto* mov = player.GetComponent<MovementComponent>();
-        auto* pos = player.GetComponent<TransformComponent>();
-
-
-        
-        if(IsKeyDown(KEY_D))
-            mov->velocity.x = 150;
-        else if(IsKeyDown(KEY_A))
-            mov->velocity.x = -150;
-        else
-            mov->velocity.x = 0;
-        if(IsKeyPressed(KEY_SPACE))
-        {
-            for(auto& bullet: bullets)
-            {
-                auto* bulComp = bullet.GetComponent<BulletComponent>();
-
-                if(bulComp->isActive)
-                    continue;
-
-                bulComp->isActive = true;
-
-                auto* bulPos = bullet.GetComponent<TransformComponent>();
-                auto* bulMov = bullet.GetComponent<MovementComponent>();
-                
-                bulPos->position.x = pos->position.x;
-                bulPos->position.y = pos->position.y;
-                
-                bulMov->velocity.y = -500;
-                
-                break;
-            }
-        }
-    }
-    */
         std::vector<PlayerCommand> commands;
 
         if(IsKeyDown(KEY_D))
@@ -129,11 +92,10 @@ public:
             //DEBUG COLLIDER
             //DrawRectangle(col->rect.x, col->rect.y, col->rect.width, col->rect.height, BLUE);
         }
-
     }
+
     void CheckCollisions(std::vector<Entity>& entities1, std::vector<Entity>& entities2)
     {
-
         for(auto& bullet : entities1)
         {
             auto* collider = bullet.GetComponent<ColliderComponent>();
@@ -235,6 +197,7 @@ public:
         }
         shootEvents.clear();
 
+        //check if bullet should be active
         for (auto& bullet : bullets) {
             auto* bulPos = bullet.GetComponent<TransformComponent>();
             auto* bulComp = bullet.GetComponent<BulletComponent>();
