@@ -2,6 +2,16 @@
 #include "raylib.h"
 #include "ECS.h"
 
+enum class EntityType
+{
+    None,
+    Player,
+    Enemy,
+    Wall,
+    EnemyBullet,
+    PlayerBullet
+};
+
 struct TransformComponent : public Component
 {
     TransformComponent(float x, float y) : position{x, y} {};
@@ -39,6 +49,13 @@ struct AIComponent : public Component
 
 struct BulletComponent : public Component
 {
-    BulletComponent(){};
+    BulletComponent() = default;
     bool isActive{};
+};
+
+struct TagComponent : public Component
+{
+    TagComponent(EntityType entType = EntityType::None) : type(entType){}
+
+    EntityType type;
 };

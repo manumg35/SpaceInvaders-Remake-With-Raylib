@@ -94,16 +94,21 @@ public:
         }
     }
 
-    void CheckCollisions(std::vector<Entity>& entities1, std::vector<Entity>& entities2)
+    void CheckCollisions(std::vector<Entity>& entities)
     {
-        for(auto& bullet : entities1)
+        for(auto& possibleBullets : entities)
         {
-            auto* collider = bullet.GetComponent<ColliderComponent>();
+            if(possibleBullets.GetComponent<TagComponent>()->type != EntityType::PlayerBullet)
+                continue;
 
-            for(auto& enemy : entities2)
+            auto* collider = possibleBullets.GetComponent<ColliderComponent>();
+            for(auto& possibleEnemies : entities)
             {
-                auto* otherCollider = enemy.GetComponent<ColliderComponent>();
-                auto* render = enemy.GetComponent<RenderComponent>();
+                if(possibleEnemies.GetComponent<TagComponent>()->type != EntityType::Enemy)
+                    continue;
+
+                auto* render = possibleEnemies.GetComponent<RenderComponent>();
+                auto* otherCollider = possibleEnemies.GetComponent<ColliderComponent>();
 
                 if(CheckCollisionRecs(collider->rect, otherCollider->rect))
                 {
@@ -137,9 +142,8 @@ public:
                 minY = std::min(minY, pos->position.y);
 
                 if(maxX > 368)
-                {
                     ai->xDir = -1;
-                }
+                
                 if(minX < 0)
                     ai->xDir = 1;
 

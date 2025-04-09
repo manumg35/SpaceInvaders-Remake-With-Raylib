@@ -12,6 +12,7 @@ void Game::Init()
     player->AddComponent<TransformComponent>(200,500);
     player->AddComponent<MovementComponent>(0,0);
     player->AddComponent<RenderComponent>(LoadTexture("textures/spaceship.png"));
+    player->AddComponent<TagComponent>(EntityType::Player);
     entities.push_back(*player);
 
     //Create enemies
@@ -25,6 +26,7 @@ void Game::Init()
             enemy.AddComponent<AIComponent>();
             enemy.AddComponent<MovementComponent>(0,0);
             enemy.AddComponent<RenderComponent>(LoadTexture("textures/enemy1.png"));
+            enemy.AddComponent<TagComponent>(EntityType::Enemy);
             entities.push_back(std::move(enemy));
         }
     }
@@ -36,6 +38,7 @@ void Game::Init()
     bullet.AddComponent<MovementComponent>(0, -500);
     bullet.AddComponent<BulletComponent>();
     bullet.AddComponent<RenderComponent>(LoadTexture("textures/bullet.png"));
+    bullet.AddComponent<TagComponent>(EntityType::PlayerBullet);
     entities.push_back(bullet);
 
     Entity bullet2;
@@ -44,6 +47,7 @@ void Game::Init()
     bullet2.AddComponent<MovementComponent>(0, -500);
     bullet2.AddComponent<BulletComponent>();
     bullet2.AddComponent<RenderComponent>(LoadTexture("textures/bullet.png"));
+    bullet2.AddComponent<TagComponent>(EntityType::PlayerBullet);
     entities.push_back(bullet2);
 }
 
@@ -70,7 +74,7 @@ void Game::Run()
         //COLLISIONS
         colliderSystem.UpdateColliders(entities);
 
-        //colliderSystem.CheckCollisions(bullets, enemies);
+        colliderSystem.CheckCollisions(entities);
 
         BeginDrawing();
         ClearBackground(BLACK);
