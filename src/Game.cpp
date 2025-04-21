@@ -10,6 +10,7 @@ void Game::Init()
     //Create player
     player = std::make_shared<Entity>();
     player->AddComponent<TransformComponent>(200,500);
+    player->AddComponent<ColliderComponent>(200, 500, 32, 32, 0, 0);
     player->AddComponent<MovementComponent>(0,0);
     player->AddComponent<RenderComponent>(LoadTexture("textures/spaceship.png"));
     player->AddComponent<TagComponent>(EntityType::Player);

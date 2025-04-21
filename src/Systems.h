@@ -100,35 +100,62 @@ public:
 
     void CheckCollisions(std::vector<Entity>& entities)
     {
-        for(auto& possibleBullets : entities)
+        for(auto& possibleBullet : entities)
         {
-            if(!possibleBullets.isActive)
+            if(!possibleBullet.isActive)
                 continue;
             
             //check if the entity is a player bullet
-            if(possibleBullets.GetComponent<TagComponent>()->type != EntityType::PlayerBullet)
-                continue;
-
-            auto* bulletCollider = possibleBullets.GetComponent<ColliderComponent>();
-            
-            for(auto& possibleEnemies : entities)
+            if(possibleBullet.GetComponent<TagComponent>()->type == EntityType::PlayerBullet)
             {
-                if(!possibleEnemies.isActive)
-                    continue;
-                // check if the entity is an enemy
-                if(possibleEnemies.GetComponent<TagComponent>()->type != EntityType::Enemy 
-                    && possibleEnemies.GetComponent<TagComponent>()->type != EntityType::EnemyBullet)
-                    continue;
-
-                //auto* render = possibleEnemies.GetComponent<RenderComponent>();
-                auto* enemyCollider = possibleEnemies.GetComponent<ColliderComponent>();
-                //check collision between the bullet and the enemy
-                if(CheckCollisionRecs(bulletCollider->rect, enemyCollider->rect))
+                auto* bulletCollider = possibleBullet.GetComponent<ColliderComponent>();
+            
+                for(auto& possibleEnemies : entities)
                 {
-                    possibleEnemies.isActive=false;
-                    possibleBullets.isActive=false;
-                    //render->textureTint = RED;
-                        
+                    if(!possibleEnemies.isActive)
+                        continue;
+                    // check if the entity is an enemy
+                    if(possibleEnemies.GetComponent<TagComponent>()->type != EntityType::Enemy 
+                        && possibleEnemies.GetComponent<TagComponent>()->type != EntityType::EnemyBullet)
+                        continue;
+
+                    //auto* render = possibleEnemies.GetComponent<RenderComponent>();
+                    auto* enemyCollider = possibleEnemies.GetComponent<ColliderComponent>();
+                    //check collision between the bullet and the enemy
+                    if(CheckCollisionRecs(bulletCollider->rect, enemyCollider->rect))
+                    {
+                        possibleEnemies.isActive=false;
+                        possibleBullet.isActive=false;
+                        //render->textureTint = RED;
+                            
+                    }
+                }
+            }
+            else if(possibleBullet.GetComponent<TagComponent>()->type == EntityType::EnemyBullet)
+            {
+                for(auto& possiblePlayer : entities)
+                {
+                    if(!possiblePlayer.isActive)
+                        continue;
+                    if(possiblePlayer.GetComponent<TagComponent>()->type != EntityType::Player)
+                        continue;
+
+                    auto* bulletCollider = possibleBullet.GetComponent<ColliderComponent>();
+                    auto* playerCollider = possiblePlayer.GetComponent<ColliderComponent>();
+
+                    if(CheckCollisionRecs(bulletCollider->rect, playerCollider->rect))
+                    {
+                        auto* healthComp = possiblePlayer.GetComponent<HealthComponent>();
+                        auto* render = possiblePlayer.GetComponent<RenderComponent>();
+                        healthComp->currentHealth--;
+                        possibleBullet.isActive=false;
+                        if(healthComp->currentHealth<1)
+                        {
+                            render->textureTint = BLUE;
+                            //DIE
+                        }
+                    }
+                    
                 }
             }
         }
