@@ -6,7 +6,9 @@
 struct ShootEvent
 {
     Vector2 position;
+    float ySpeed;
     int yDirection;
+    EntityType bulletType;
 };
 
 enum class PlayerCommand
@@ -64,7 +66,7 @@ public:
                 break;
 
             case PlayerCommand::Shoot:
-                shootEvents.push_back({pos->position, -1});
+                shootEvents.push_back({pos->position, 500, -1, EntityType::PlayerBullet});
                 break;
 
             default:
@@ -81,6 +83,8 @@ public:
     {
         for(auto& entity : entities)
         {
+            if(!entity.isActive)
+                continue;
             auto* pos = entity.GetComponent<TransformComponent>();
             auto* col = entity.GetComponent<ColliderComponent>();
 
@@ -98,21 +102,33 @@ public:
     {
         for(auto& possibleBullets : entities)
         {
+            if(!possibleBullets.isActive)
+                continue;
+            
+            //check if the entity is a player bullet
             if(possibleBullets.GetComponent<TagComponent>()->type != EntityType::PlayerBullet)
                 continue;
 
-            auto* collider = possibleBullets.GetComponent<ColliderComponent>();
+            auto* bulletCollider = possibleBullets.GetComponent<ColliderComponent>();
+            
             for(auto& possibleEnemies : entities)
             {
-                if(possibleEnemies.GetComponent<TagComponent>()->type != EntityType::Enemy)
+                if(!possibleEnemies.isActive)
+                    continue;
+                // check if the entity is an enemy
+                if(possibleEnemies.GetComponent<TagComponent>()->type != EntityType::Enemy 
+                    && possibleEnemies.GetComponent<TagComponent>()->type != EntityType::EnemyBullet)
                     continue;
 
-                auto* render = possibleEnemies.GetComponent<RenderComponent>();
-                auto* otherCollider = possibleEnemies.GetComponent<ColliderComponent>();
-
-                if(CheckCollisionRecs(collider->rect, otherCollider->rect))
+                //auto* render = possibleEnemies.GetComponent<RenderComponent>();
+                auto* enemyCollider = possibleEnemies.GetComponent<ColliderComponent>();
+                //check collision between the bullet and the enemy
+                if(CheckCollisionRecs(bulletCollider->rect, enemyCollider->rect))
                 {
-                    render->textureTint = RED;
+                    possibleEnemies.isActive=false;
+                    possibleBullets.isActive=false;
+                    //render->textureTint = RED;
+                        
                 }
             }
         }
@@ -122,14 +138,17 @@ public:
 class AISystem
 {
 public:
-    void Update(std::vector<Entity>& entities)
+    void Update(std::vector<Entity>& entities, std::vector<ShootEvent>& shootEvents)
     {
         float maxX{-1.f};
         float minX{450.f};
         float minY{600.f};
 
+        bool reverseDir = false;
         for(auto& entity : entities)
         {
+            if(!entity.isActive)
+                continue;
             auto* pos = entity.GetComponent<TransformComponent>();
             auto* mov = entity.GetComponent<MovementComponent>();
             auto* ai = entity.GetComponent<AIComponent>();
@@ -141,14 +160,37 @@ public:
 
                 minY = std::min(minY, pos->position.y);
 
-                if(maxX > 368)
-                    ai->xDir = -1;
-                
-                if(minX < 0)
-                    ai->xDir = 1;
-
-                mov->velocity.x = (10 + (ai->currentSpeed * minY)) * ai->xDir;
+                if(maxX > 368 || minX < 0)
+                {
+                    reverseDir = true;
+                    maxX = 0.f;
+                    minX = 450.f;
+                    break;
+                }
             }
+        }
+
+        for(auto& entity : entities)
+        {
+            if(!entity.isActive)
+                continue;
+
+            auto* mov = entity.GetComponent<MovementComponent>();
+            auto* pos = entity.GetComponent<TransformComponent>();
+            auto* ai = entity.GetComponent<AIComponent>();
+            if(!ai || !pos || !mov)
+                continue;
+
+            if(reverseDir)
+            {
+                pos->position.y += 32;
+                ai->xDir *= -1;
+            }
+            // 2% bullet shoot 
+            if (GetRandomValue(0, 1000) < 1) 
+                shootEvents.push_back({pos->position, 250, 1, EntityType::EnemyBullet});
+            
+            mov->velocity.x = ai->xDir * (minY/1.5f);
         }
     }
 };
@@ -159,6 +201,8 @@ public:
     void Update(std::vector<Entity>& entities, float deltaTime)
     {
         for (auto& entity : entities) {
+            if(!entity.isActive)
+                continue;
             auto* pos = entity.GetComponent<TransformComponent>();
             auto * mov = entity.GetComponent<MovementComponent>();
 
@@ -185,16 +229,17 @@ public:
                 auto* bulComp = bullet.GetComponent<BulletComponent>();
                 auto* bulPos = bullet.GetComponent<TransformComponent>();
                 auto* bulMov = bullet.GetComponent<MovementComponent>();
+                auto* tag = bullet.GetComponent<TagComponent>();
 
-                if(!bulComp)
+                if(!bulComp || tag->type != shootEv.bulletType)
                     continue;
-                if(bulComp->isActive)
+                if(bullet.isActive)
                     continue;
 
-                bulComp->isActive = true;
+                bullet.isActive = true;
                 
                 bulPos->position = shootEv.position;           
-                bulMov->velocity.y = 500 * shootEv.yDirection;
+                bulMov->velocity.y = shootEv.ySpeed * shootEv.yDirection;
                 
                 break;
             }
@@ -212,7 +257,7 @@ public:
             
             if(bulPos->position.y < -50 || bulPos->position.y > 600)
             {
-                bulComp->isActive = false;
+                bullet.isActive = false;
                 bulMov->velocity.y = 0;
             }
         }
@@ -225,6 +270,8 @@ class RenderSystem
 public:
     void Render(std::vector<Entity>& entities) {
         for (auto& entity : entities) {
+            if(!entity.isActive)
+                continue;
             auto* pos = entity.GetComponent<TransformComponent>();
             auto* render = entity.GetComponent<RenderComponent>();
             if (pos && render)

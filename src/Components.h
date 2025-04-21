@@ -43,14 +43,21 @@ struct ColliderComponent : public Component
 struct AIComponent : public Component
 {
     AIComponent() = default;
-    static inline int xDir{1};
-    static inline float currentSpeed{1.f};    
+    float currentSpeed{1.f};
+    int xDir{1};
+    bool isActive{true};    
 };
 
 struct BulletComponent : public Component
 {
     BulletComponent() = default;
     bool isActive{};
+};
+
+struct HealthComponent : public Component
+{
+    HealthComponent(int health): currentHealth(health){};
+    int currentHealth{};
 };
 
 struct TagComponent : public Component

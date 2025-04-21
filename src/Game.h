@@ -10,23 +10,26 @@ class Game
 public:
     void Init();
     void Run();
+    void Close();
 
 private:
 
     //SYSTEMS
-    RenderSystem renderSystem;
+    PlayerControlSystem pcSystem;
     InputSystem inputSystem;
     MovementSystem movementSystem;
     AISystem aiSystem;
     ColliderSystem colliderSystem;
     BulletSystem bulletSystem;
-    PlayerControlSystem pcSystem;
+    RenderSystem renderSystem;
 
     std::vector<Entity> entities;
     std::vector<ShootEvent> shootEvents;
 
     std::shared_ptr<Entity> player = nullptr;
 
+    int maxScore{0};
+    int currentScore{0};
     int screenWidth{400};
     int screenHeight{600};
     int targetFPS{60};

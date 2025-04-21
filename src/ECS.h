@@ -44,7 +44,7 @@ public:
         
         return static_cast<T*>(componentPools[typeid(T)][it->second]);
     }
-
+    bool isActive{true};
 
 private:
     // Map each component type to a vector storing all instances of that type
@@ -54,5 +54,6 @@ private:
 
     static inline int nextEntityID{0};
     int id; 
+    
     
 };

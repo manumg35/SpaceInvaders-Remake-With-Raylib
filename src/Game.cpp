@@ -13,12 +13,13 @@ void Game::Init()
     player->AddComponent<MovementComponent>(0,0);
     player->AddComponent<RenderComponent>(LoadTexture("textures/spaceship.png"));
     player->AddComponent<TagComponent>(EntityType::Player);
+    player->AddComponent<HealthComponent>(3);
     entities.push_back(*player);
 
     //Create enemies
-    for(int i=0; i<4; i++)
+    for(int i=0; i<3; i++)
     {
-        for(int j=0; j<8; j++)
+        for(int j=0; j<5; j++)
         {
             Entity enemy;
             enemy.AddComponent<TransformComponent>(50 + 32 * j, 100 + 32 * i);
@@ -27,30 +28,39 @@ void Game::Init()
             enemy.AddComponent<MovementComponent>(0,0);
             enemy.AddComponent<RenderComponent>(LoadTexture("textures/enemy1.png"));
             enemy.AddComponent<TagComponent>(EntityType::Enemy);
+            enemy.AddComponent<HealthComponent>(1);
             entities.push_back(std::move(enemy));
         }
     }
 
-    //Create bullets
-    Entity bullet;
-    bullet.AddComponent<TransformComponent>(0, 0);
-    bullet.AddComponent<ColliderComponent>(0, 0, 5, 12, 14, 10);
-    bullet.AddComponent<MovementComponent>(0, -500);
-    bullet.AddComponent<BulletComponent>();
-    bullet.AddComponent<RenderComponent>(LoadTexture("textures/bullet.png"));
-    bullet.AddComponent<TagComponent>(EntityType::PlayerBullet);
-    entities.push_back(bullet);
+    //Create player bullets
+    for(int i=0; i<2; i++)
+    {
+        Entity bullet;
+        bullet.AddComponent<TransformComponent>(0, 0);
+        bullet.AddComponent<ColliderComponent>(0, 0, 5, 12, 14, 10);
+        bullet.AddComponent<MovementComponent>(0, 0);
+        bullet.AddComponent<BulletComponent>();
+        bullet.AddComponent<RenderComponent>(LoadTexture("textures/bullet.png"));
+        bullet.AddComponent<TagComponent>(EntityType::PlayerBullet);
+        bullet.isActive = false;
+        entities.push_back(bullet);
+    }
 
-    Entity bullet2;
-    bullet2.AddComponent<TransformComponent>(0, 0);
-    bullet2.AddComponent<ColliderComponent>(0, 0, 5, 12, 14, 10);
-    bullet2.AddComponent<MovementComponent>(0, -500);
-    bullet2.AddComponent<BulletComponent>();
-    bullet2.AddComponent<RenderComponent>(LoadTexture("textures/bullet.png"));
-    bullet2.AddComponent<TagComponent>(EntityType::PlayerBullet);
-    entities.push_back(bullet2);
+    //Create enemy bullets
+    for(int i=0; i<5; i++)
+    {
+        Entity bullet;
+        bullet.AddComponent<TransformComponent>(0, 0);
+        bullet.AddComponent<ColliderComponent>(0, 0, 5, 12, 14, 10);
+        bullet.AddComponent<MovementComponent>(0, 0);
+        bullet.AddComponent<BulletComponent>();
+        bullet.AddComponent<RenderComponent>(LoadTexture("textures/enemyBullet.png"));
+        bullet.AddComponent<TagComponent>(EntityType::EnemyBullet);
+        bullet.isActive = false;
+        entities.push_back(bullet);
+    }
 }
-
 
 void Game::Run()
 {
@@ -59,11 +69,11 @@ void Game::Run()
         
         float deltaTime = GetFrameTime();
 
-        //INPUT
+        //Player Controller + INPUT
         pcSystem.Update(*player, inputSystem.HandleInput(), shootEvents);
 
         //AI
-        aiSystem.Update(entities);
+        aiSystem.Update(entities, shootEvents);
 
         //MANAGE BULLETS
         bulletSystem.Update(entities, shootEvents);
@@ -82,12 +92,23 @@ void Game::Run()
         //RENDER
         renderSystem.Render(entities);
 
-        DrawText(std::to_string(GetFPS()).c_str(), 0, 0, 18, WHITE);
+        //UI
+        DrawText(std::to_string(GetFPS()).c_str(), 0, 0, 18, WHITE);        
+        
         // DrawText(typeid(RenderSystem).name(), 0, 0, 18, WHITE);
         // DrawText(typeid(InputSystem).name(), 0, 18, 18, WHITE);
         // DrawText(typeid(MovementComponent).name(), 0, 36, 18, WHITE);
         EndDrawing();
     }
     
+    
+}
+
+void Game::Close()
+{
+    entities.clear();
+    shootEvents.clear();
+
+    player = nullptr;
     CloseWindow();
 }
