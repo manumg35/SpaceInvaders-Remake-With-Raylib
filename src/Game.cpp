@@ -84,8 +84,9 @@ void Game::Run()
 
         //COLLISIONS
         colliderSystem.UpdateColliders(entities);
-
-        colliderSystem.CheckCollisions(entities);
+        std::vector<CollisionEvent> collEvents;
+        colliderSystem.CheckCollisions(entities, collEvents);
+        colliderSystem.HandleCollisions(entities, collEvents);
 
         BeginDrawing();
         ClearBackground(BLACK);

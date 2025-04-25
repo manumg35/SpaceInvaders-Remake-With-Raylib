@@ -11,6 +11,11 @@ struct ShootEvent
     EntityType bulletType;
 };
 
+struct CollisionEvent{
+    int entityAIndex;
+    int entityBIndex;
+};
+
 enum class PlayerCommand
 {
     MoveLeft,
@@ -18,6 +23,7 @@ enum class PlayerCommand
     Shoot,
     Stop
 };
+
 
 class InputSystem
 {
@@ -98,67 +104,78 @@ public:
         }
     }
 
-    void CheckCollisions(std::vector<Entity>& entities)
+    void CheckCollisions(std::vector<Entity>& entities, std::vector<CollisionEvent>& colEvents)
     {
-        for(auto& possibleBullet : entities)
+        for(size_t i = 0; i<entities.size(); i++)
         {
-            if(!possibleBullet.isActive)
+            if(!entities[i].isActive)
                 continue;
             
-            //check if the entity is a player bullet
-            if(possibleBullet.GetComponent<TagComponent>()->type == EntityType::PlayerBullet)
-            {
-                auto* bulletCollider = possibleBullet.GetComponent<ColliderComponent>();
+            auto* colA = entities[i].GetComponent<ColliderComponent>();
+            if(!colA)
+                continue;
+
             
-                for(auto& possibleEnemies : entities)
-                {
-                    if(!possibleEnemies.isActive)
-                        continue;
-                    // check if the entity is an enemy
-                    if(possibleEnemies.GetComponent<TagComponent>()->type != EntityType::Enemy 
-                        && possibleEnemies.GetComponent<TagComponent>()->type != EntityType::EnemyBullet)
-                        continue;
-
-                    //auto* render = possibleEnemies.GetComponent<RenderComponent>();
-                    auto* enemyCollider = possibleEnemies.GetComponent<ColliderComponent>();
-                    //check collision between the bullet and the enemy
-                    if(CheckCollisionRecs(bulletCollider->rect, enemyCollider->rect))
-                    {
-                        possibleEnemies.isActive=false;
-                        possibleBullet.isActive=false;
-                        //render->textureTint = RED;
-                            
-                    }
-                }
-            }
-            else if(possibleBullet.GetComponent<TagComponent>()->type == EntityType::EnemyBullet)
+            for(size_t j = i+1; j <entities.size(); j++)
             {
-                for(auto& possiblePlayer : entities)
+                if(!entities[j].isActive)
+                continue;
+            
+                auto* colB = entities[j].GetComponent<ColliderComponent>();
+                if(!colB)
+                    continue;
+
+                if(CheckCollisionRecs(colA->rect, colB->rect))
                 {
-                    if(!possiblePlayer.isActive)
-                        continue;
-                    if(possiblePlayer.GetComponent<TagComponent>()->type != EntityType::Player)
-                        continue;
-
-                    auto* bulletCollider = possibleBullet.GetComponent<ColliderComponent>();
-                    auto* playerCollider = possiblePlayer.GetComponent<ColliderComponent>();
-
-                    if(CheckCollisionRecs(bulletCollider->rect, playerCollider->rect))
-                    {
-                        auto* healthComp = possiblePlayer.GetComponent<HealthComponent>();
-                        auto* render = possiblePlayer.GetComponent<RenderComponent>();
-                        healthComp->currentHealth--;
-                        possibleBullet.isActive=false;
-                        if(healthComp->currentHealth<1)
-                        {
-                            render->textureTint = BLUE;
-                            //DIE
-                        }
-                    }
-                    
+                    colEvents.push_back({static_cast<int>(i), static_cast<int>(j)});
                 }
             }
         }
+    }
+
+    void HandleCollisions(std::vector<Entity>& entities, std::vector<CollisionEvent>& colEvents)
+    {
+        for(auto& event: colEvents)
+        {
+            Entity& a = entities[event.entityAIndex];
+            Entity& b = entities[event.entityBIndex];
+
+            //Collision symmetry
+            ResolveCollisions(a,b);
+            ResolveCollisions(b,a);
+        }
+    }
+
+    void ResolveCollisions(Entity&a , Entity&b)
+    {
+        auto* tagA = a.GetComponent<TagComponent>();
+        auto* tagB = b.GetComponent<TagComponent>();
+            
+        if(!tagA || !tagB)
+            return;
+            
+        //Player collision with enemy bullet
+        if(tagA->type == EntityType::Player)
+        {
+            if(tagB->type == EntityType::EnemyBullet)
+            {
+                //Check health
+            }
+        }
+        //Player bullet collision
+        else if(tagA->type == EntityType::PlayerBullet)
+        {
+            if(tagB->type == EntityType::EnemyBullet)
+            {
+                a.isActive = false;
+                b.isActive = false;
+            }
+            else if(tagB->type == EntityType::Enemy)
+            {
+                a.isActive = false;
+                b.isActive = false;
+            }
+        }                
     }
 };
 
@@ -213,7 +230,7 @@ public:
                 pos->position.y += 32;
                 ai->xDir *= -1;
             }
-            // 2% bullet shoot 
+            // 1% bullet shoot 
             if (GetRandomValue(0, 1000) < 1) 
                 shootEvents.push_back({pos->position, 250, 1, EntityType::EnemyBullet});
             

@@ -44,6 +44,7 @@ public:
         
         return static_cast<T*>(componentPools[typeid(T)][it->second]);
     }
+        
     bool isActive{true};
 
 private:
