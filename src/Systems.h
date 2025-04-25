@@ -106,7 +106,7 @@ public:
 
     void CheckCollisions(std::vector<Entity>& entities, std::vector<CollisionEvent>& colEvents)
     {
-        for(size_t i = 0; i<entities.size(); i++)
+        for(int i = 0; i<entities.size(); i++)
         {
             if(!entities[i].isActive)
                 continue;
@@ -116,7 +116,7 @@ public:
                 continue;
 
             
-            for(size_t j = i+1; j <entities.size(); j++)
+            for(int j = i+1; j <entities.size(); j++)
             {
                 if(!entities[j].isActive)
                 continue;
@@ -127,7 +127,7 @@ public:
 
                 if(CheckCollisionRecs(colA->rect, colB->rect))
                 {
-                    colEvents.push_back({static_cast<int>(i), static_cast<int>(j)});
+                    colEvents.push_back({i, j});
                 }
             }
         }
@@ -159,7 +159,16 @@ public:
         {
             if(tagB->type == EntityType::EnemyBullet)
             {
+                b.isActive = false;
+                
                 //Check health
+                auto* health = a.GetComponent<HealthComponent>();
+                if(!health)
+                    return;
+
+                health->currentHealth--;
+                if(health->currentHealth<1)
+                    a.isActive = false;
             }
         }
         //Player bullet collision
@@ -174,6 +183,7 @@ public:
             {
                 a.isActive = false;
                 b.isActive = false;
+                //add score
             }
         }                
     }
