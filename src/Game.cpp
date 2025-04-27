@@ -65,6 +65,9 @@ void Game::Init()
 
 void Game::Run()
 {
+    std::vector<CollisionEvent> colEvents;
+    std::vector<GameEvent> gameEvents;
+
     while(!WindowShouldClose())
     {
         
@@ -84,10 +87,14 @@ void Game::Run()
 
         //COLLISIONS
         colliderSystem.UpdateColliders(entities);
-        std::vector<CollisionEvent> collEvents;
-        colliderSystem.CheckCollisions(entities, collEvents);
-        colliderSystem.HandleCollisions(entities, collEvents);
+        
+        colliderSystem.CheckCollisions(entities, colEvents);
+        colliderSystem.HandleCollisions(entities, colEvents, gameEvents);
 
+        //MANAGE GAME EVENTS
+        scoreSystem.Update(gameEvents, state);
+
+        
         BeginDrawing();
         ClearBackground(BLACK);
 
@@ -95,7 +102,8 @@ void Game::Run()
         renderSystem.Render(entities);
 
         //UI
-        DrawText(std::to_string(GetFPS()).c_str(), 0, 0, 18, WHITE);        
+        uiSystem.Render(state);
+        //DrawText(std::to_string(GetFPS()).c_str(), 0, 0, 18, WHITE);        
         
         // DrawText(typeid(RenderSystem).name(), 0, 0, 18, WHITE);
         // DrawText(typeid(InputSystem).name(), 0, 18, 18, WHITE);

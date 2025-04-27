@@ -14,6 +14,8 @@ public:
 
 private:
 
+    GameState state;
+
     //SYSTEMS
     PlayerControlSystem pcSystem;
     InputSystem inputSystem;
@@ -22,6 +24,8 @@ private:
     ColliderSystem colliderSystem;
     BulletSystem bulletSystem;
     RenderSystem renderSystem;
+    ScoreSystem scoreSystem;
+    UISystem uiSystem;
 
     std::vector<Entity> entities;
     std::vector<ShootEvent> shootEvents;

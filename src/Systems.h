@@ -3,6 +3,12 @@
 #include "ECS.h"
 #include "Components.h"
 
+struct GameState {
+    int score{};
+    int highScore{};
+    int playerHealth{3};
+};
+
 struct ShootEvent
 {
     Vector2 position;
@@ -24,6 +30,18 @@ enum class PlayerCommand
     Stop
 };
 
+enum class GameEventType
+{
+    PlayerHit,
+    EnemyKilled,
+
+
+};
+
+struct GameEvent
+{
+    GameEventType type;
+};
 
 class InputSystem
 {
@@ -133,7 +151,7 @@ public:
         }
     }
 
-    void HandleCollisions(std::vector<Entity>& entities, std::vector<CollisionEvent>& colEvents)
+    void HandleCollisions(std::vector<Entity>& entities, std::vector<CollisionEvent>& colEvents, std::vector<GameEvent>& gameEvents)
     {
         for(auto& event: colEvents)
         {
@@ -141,12 +159,13 @@ public:
             Entity& b = entities[event.entityBIndex];
 
             //Collision symmetry
-            ResolveCollisions(a,b);
-            ResolveCollisions(b,a);
+            ResolveCollisions(a,b, gameEvents);
+            ResolveCollisions(b,a, gameEvents);
         }
+        colEvents.clear();
     }
 
-    void ResolveCollisions(Entity&a , Entity&b)
+    void ResolveCollisions(Entity&a , Entity&b, std::vector<GameEvent>& gameEvents)
     {
         auto* tagA = a.GetComponent<TagComponent>();
         auto* tagB = b.GetComponent<TagComponent>();
@@ -169,6 +188,8 @@ public:
                 health->currentHealth--;
                 if(health->currentHealth<1)
                     a.isActive = false;
+
+                gameEvents.push_back({GameEventType::PlayerHit});
             }
         }
         //Player bullet collision
@@ -183,7 +204,8 @@ public:
             {
                 a.isActive = false;
                 b.isActive = false;
-                //add score
+                //AddScore Event
+                gameEvents.push_back({GameEventType::EnemyKilled});
             }
         }                
     }
@@ -332,4 +354,43 @@ public:
                 DrawTexture(render->texture, pos->position.x, pos->position.y, render->textureTint);
         }
     }
+};
+
+class ScoreSystem
+{
+public:
+    void Update(std::vector<GameEvent>& gameEvents, GameState& state)
+    {
+        for(auto& gameEvent : gameEvents)
+        {
+            switch (gameEvent.type)
+            {
+            case GameEventType::EnemyKilled:
+                state.score+=100;
+                if(state.score>state.highScore)
+                    state.highScore = state.score;
+                break;
+
+            case GameEventType::PlayerHit:
+                break;
+
+            default:
+                break;
+            }
+
+        }
+        gameEvents.clear();
+    }
+};
+
+
+class UISystem
+{
+public:
+    void Render(GameState& state)
+    {
+        DrawText(TextFormat("Score: %i", state.score), 10, 10, 20, WHITE);
+        DrawText(TextFormat("Hi-Score: %i", state.score), 10, 30, 20, WHITE);
+    }
+
 };
