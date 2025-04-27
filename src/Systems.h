@@ -3,10 +3,20 @@
 #include "ECS.h"
 #include "Components.h"
 
-struct GameState {
+struct GameData 
+{
     int score{};
     int highScore{};
     int playerHealth{3};
+    int nDeadEnemies{0};
+};
+
+enum class GameStateType
+{
+    Paused,
+    Playing,
+    GameOver,
+    Restarting
 };
 
 struct ShootEvent
@@ -34,8 +44,6 @@ enum class GameEventType
 {
     PlayerHit,
     EnemyKilled,
-
-
 };
 
 struct GameEvent
@@ -46,7 +54,7 @@ struct GameEvent
 class InputSystem
 {
 public:
-    std::vector<PlayerCommand> HandleInput(/*Entity& player, std::vector<Entity>& bullets*/)
+    std::vector<PlayerCommand> HandleInput()
     {
         std::vector<PlayerCommand> commands;
 
@@ -72,7 +80,6 @@ public:
         auto* mov = player.GetComponent<MovementComponent>();
         auto* pos = player.GetComponent<TransformComponent>();
 
-        //TRY using the commands pattern?
         for(auto& command : commands)
         {
             switch (command)
@@ -90,9 +97,10 @@ public:
                 break;
 
             case PlayerCommand::Shoot:
+            {
                 shootEvents.push_back({pos->position, 500, -1, EntityType::PlayerBullet});
                 break;
-
+            }
             default:
                 break;
             }
@@ -214,11 +222,10 @@ public:
 class AISystem
 {
 public:
-    void Update(std::vector<Entity>& entities, std::vector<ShootEvent>& shootEvents)
+    void Update(std::vector<Entity>& entities, std::vector<ShootEvent>& shootEvents, const GameData& gameData)
     {
         float maxX{-1.f};
         float minX{450.f};
-        float minY{600.f};
 
         bool reverseDir = false;
         for(auto& entity : entities)
@@ -233,8 +240,6 @@ public:
             {
                 maxX = std::max(maxX, pos->position.x);
                 minX = std::min(minX, pos->position.x);
-
-                minY = std::min(minY, pos->position.y);
 
                 if(maxX > 368 || minX < 0)
                 {
@@ -262,11 +267,11 @@ public:
                 pos->position.y += 32;
                 ai->xDir *= -1;
             }
-            // 1% bullet shoot 
-            if (GetRandomValue(0, 1000) < 1) 
-                shootEvents.push_back({pos->position, 250, 1, EntityType::EnemyBullet});
-            
-            mov->velocity.x = ai->xDir * (minY/1.5f);
+            // increase bullet spawn rate probability as fewer enemies are alive
+            if (GetRandomValue(0, 4000) < gameData.nDeadEnemies) 
+                shootEvents.push_back({pos->position, 150, 1, EntityType::EnemyBullet});
+            // increase speed as fewer enemies are alive
+            mov->velocity.x = ai->xDir * (50 + (20 * gameData.nDeadEnemies));
         }
     }
 };
@@ -356,24 +361,29 @@ public:
     }
 };
 
-class ScoreSystem
+class GameManagerSystem
 {
 public:
-    void Update(std::vector<GameEvent>& gameEvents, GameState& state)
+    void Update(std::vector<GameEvent>& gameEvents, GameData& gameData, GameStateType& gameState)
     {
         for(auto& gameEvent : gameEvents)
         {
             switch (gameEvent.type)
             {
             case GameEventType::EnemyKilled:
-                state.score+=100;
-                if(state.score>state.highScore)
-                    state.highScore = state.score;
+                gameData.score+=100;
+                gameData.nDeadEnemies++;
+                if(gameData.score>gameData.highScore)
+                    gameData.highScore = gameData.score;
                 break;
 
             case GameEventType::PlayerHit:
+            {
+                gameData.playerHealth--;
+                if(gameData.playerHealth<1)
+                    gameState = GameStateType::GameOver;
                 break;
-
+            }
             default:
                 break;
             }
@@ -387,10 +397,26 @@ public:
 class UISystem
 {
 public:
-    void Render(GameState& state)
+    void Render(GameData& gameData, GameStateType gameState)
     {
-        DrawText(TextFormat("Score: %i", state.score), 10, 10, 20, WHITE);
-        DrawText(TextFormat("Hi-Score: %i", state.score), 10, 30, 20, WHITE);
+        
+        switch (gameState)
+        {
+        case GameStateType::Paused:
+            DrawText("Press the space bar to start", 50, 450, 20, WHITE);
+            DrawText(TextFormat("Hi-Score: %i", gameData.highScore), 50, 400, 20, WHITE);
+            break;
+        case GameStateType::GameOver:
+            DrawText("Press the space bar to restart", 50, 450, 20, WHITE);
+            DrawText("You lost! :c", 50, 425, 20, WHITE);
+            DrawText(TextFormat("Your score: %i", gameData.score), 50, 400, 20, WHITE);
+            DrawText(TextFormat("Hi-Score: %i", gameData.highScore), 50, 375, 20, WHITE);
+            break;
+        default:
+            DrawText(TextFormat("Score: %i", gameData.score), 10, 10, 20, WHITE);
+            DrawText(TextFormat("Hi-Score: %i", gameData.highScore), 10, 30, 20, WHITE);
+            break;
+        }
     }
 
 };

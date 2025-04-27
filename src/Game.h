@@ -11,10 +11,23 @@ public:
     void Init();
     void Run();
     void Close();
+    
 
 private:
 
-    GameState state;
+    std::vector<Entity> entities;
+    std::vector<ShootEvent> shootEvents;
+
+    std::shared_ptr<Entity> player = nullptr;
+
+    GameData gameData;
+
+    int maxScore{0};
+    int currentScore{0};
+    int screenWidth{400};
+    int screenHeight{600};
+    int targetFPS{60};
+    GameStateType gameState = GameStateType::Paused;
 
     //SYSTEMS
     PlayerControlSystem pcSystem;
@@ -24,18 +37,20 @@ private:
     ColliderSystem colliderSystem;
     BulletSystem bulletSystem;
     RenderSystem renderSystem;
-    ScoreSystem scoreSystem;
+    GameManagerSystem gameManager;
     UISystem uiSystem;
 
-    std::vector<Entity> entities;
-    std::vector<ShootEvent> shootEvents;
+    //TEXTURES
+    Texture2D playerTexture;
+    Texture2D playBulletTexture;
+    Texture2D enemyTexture;
+    Texture2D enemyBulletTexture;
+    
 
-    std::shared_ptr<Entity> player = nullptr;
-
-    int maxScore{0};
-    int currentScore{0};
-    int screenWidth{400};
-    int screenHeight{600};
-    int targetFPS{60};
-
+    void Update();
+    void Render();
+    void Restart();
+    void LoadTextures();
+    void UnloadTextures();
+    void CreateEntities();
 };
