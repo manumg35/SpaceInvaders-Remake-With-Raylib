@@ -30,7 +30,7 @@ void Game::Run()
         case GameStateType::GameOver:
             if(IsKeyPressed(KEY_SPACE))
                 gameState = GameStateType::Restarting;
-            Render();
+            Render(true);
             break;
 
         case GameStateType::Restarting:
@@ -74,20 +74,17 @@ void Game:: Update()
     Render();
 }
 
-void Game::Render()
+void Game::Render(bool renderJustUI)
 {    
     BeginDrawing();
     ClearBackground(BLACK);
 
-    //Render entities
-    renderSystem.Render(entities);
+    if(!renderJustUI){
+        //Render entities
+        renderSystem.Render(entities);
+    }
     //Render UI
     uiSystem.Render(gameData, gameState);
-    
-    //DrawText(std::to_string(GetFPS()).c_str(), 0, 0, 18, WHITE);        
-    // DrawText(typeid(RenderSystem).name(), 0, 0, 18, WHITE);
-    // DrawText(typeid(InputSystem).name(), 0, 18, 18, WHITE);
-    // DrawText(typeid(MovementComponent).name(), 0, 36, 18, WHITE);
 
     EndDrawing();
 }

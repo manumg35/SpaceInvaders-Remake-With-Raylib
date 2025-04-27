@@ -48,7 +48,7 @@ private:
     
 
     void Update();
-    void Render();
+    void Render(bool renderJustUI = false);
     void Restart();
     void LoadTextures();
     void UnloadTextures();
