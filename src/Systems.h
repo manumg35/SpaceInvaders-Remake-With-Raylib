@@ -268,7 +268,7 @@ public:
                 ai->xDir *= -1;
             }
             // increase bullet spawn rate probability as fewer enemies are alive
-            if (GetRandomValue(0, 4000) < gameData.nDeadEnemies) 
+            if (GetRandomValue(0, 2500) < gameData.nDeadEnemies) 
                 shootEvents.push_back({pos->position, 150, 1, EntityType::EnemyBullet});
             // increase speed as fewer enemies are alive
             mov->velocity.x = ai->xDir * (50 + (20 * gameData.nDeadEnemies));
