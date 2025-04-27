@@ -41,6 +41,7 @@ void Game::Run()
             break;
         }
     }
+    Close();
 }
 
 void Game:: Update()
