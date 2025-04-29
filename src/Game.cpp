@@ -20,7 +20,7 @@ void Game::Run()
         case GameStateType::Paused:
             if(IsKeyPressed(KEY_SPACE))
                 gameState = GameStateType::Playing;
-            Render();
+            Render(true);
             break;
 
         case GameStateType::Playing:
@@ -48,7 +48,7 @@ void Game:: Update()
 {
     std::vector<CollisionEvent> colEvents;
     std::vector<GameEvent> gameEvents;
-
+    
     //Player Controller + INPUT
     pcSystem.Update(*player, inputSystem.HandleInput(), shootEvents);
 
@@ -70,7 +70,8 @@ void Game:: Update()
     colliderSystem.HandleCollisions(entities, colEvents, gameEvents);
 
     //MANAGE GAME EVENTS
-    gameManager.Update(gameEvents, gameData, gameState);
+    gameManager.Update(gameEvents, entities, gameData, gameState);
+    lifeTimeSystem.Update(entities, deltaTime);
     
     Render();
 }
@@ -82,6 +83,8 @@ void Game::Render(bool renderJustUI)
 
     if(!renderJustUI){
         //Render entities
+
+        animationSystem.UpdateAnimation(entities, GetFrameTime());
         renderSystem.Render(entities);
     }
     //Render UI
@@ -120,15 +123,31 @@ void Game::LoadTextures()
 {
     playerTexture = LoadTexture("textures/spaceship.png");
     playBulletTexture = LoadTexture("textures/bullet.png");
-    enemyTexture = LoadTexture("textures/enemy1.png");
-    enemyBulletTexture = LoadTexture("textures/enemyBullet.png");
+
+    normEnemyTextures[0] = LoadTexture("textures/normalEnemy1.png");
+    normEnemyTextures[1] = LoadTexture("textures/normalEnemy2.png");
+    coneEnemyTextures[0] = LoadTexture("textures/coneEnemy1.png");
+    coneEnemyTextures[1] = LoadTexture("textures/coneEnemy2.png");
+    chunkyEnemyTextures[0] = LoadTexture("textures/chunkyEnemy1.png");
+    chunkyEnemyTextures[1] = LoadTexture("textures/chunkyEnemy2.png");
+
+    enemyBulletTextures[0] = LoadTexture("textures/enemyBullet1.png");
+    enemyBulletTextures[1] = LoadTexture("textures/enemyBullet2.png");
 }
 void Game::UnloadTextures()
 {
     UnloadTexture(playerTexture);
     UnloadTexture(playBulletTexture);
-    UnloadTexture(enemyTexture);
-    UnloadTexture(enemyBulletTexture);
+    
+    UnloadTexture(normEnemyTextures[0]);
+    UnloadTexture(normEnemyTextures[1]);
+    UnloadTexture(coneEnemyTextures[0]);
+    UnloadTexture(coneEnemyTextures[1]);
+    UnloadTexture(chunkyEnemyTextures[0]);
+    UnloadTexture(chunkyEnemyTextures[1]);
+    
+    UnloadTexture(enemyBulletTextures[0]);
+    UnloadTexture(enemyBulletTextures[1]);
 }
 void Game::CreateEntities()
 {
@@ -143,16 +162,34 @@ void Game::CreateEntities()
     entities.push_back(*player);
 
     //Create enemies
-    for(int i=0; i<3; i++)
+    for(int i=0; i<5; i++)
     {
-        for(int j=0; j<5; j++)
+        for(int j=0; j<9; j++)
         {
             Entity enemy;
-            enemy.AddComponent<TransformComponent>(50 + 32 * j, 100 + 32 * i);
-            enemy.AddComponent<ColliderComponent>(50 + 32 * j, 100 + 32 * i, 28, 16, 0, 10);
-            enemy.AddComponent<AIComponent>();
+            enemy.AddComponent<TransformComponent>(15 + 34 * j, 100 + 32 * i);
+            enemy.AddComponent<ColliderComponent>(15 + 34 * j, 100 + 32 * i, 28, 16, 0, 10);
             enemy.AddComponent<MovementComponent>(0,0);
-            enemy.AddComponent<RenderComponent>(enemyTexture);
+            
+            if(i == 0)
+            {
+                enemy.AddComponent<AIComponent>(30, EnemyType::Cone);
+                enemy.AddComponent<RenderComponent>(coneEnemyTextures[0]);
+                enemy.AddComponent<AnimationComponent>(coneEnemyTextures, 0.65);
+            }
+            else if(i < 3)
+            {
+                enemy.AddComponent<AIComponent>(20, EnemyType::Normal);
+                enemy.AddComponent<RenderComponent>(normEnemyTextures[0]);
+                enemy.AddComponent<AnimationComponent>(normEnemyTextures, 0.75);
+            }
+            else{
+                enemy.AddComponent<AIComponent>(10, EnemyType::Chunky);
+                enemy.AddComponent<RenderComponent>(chunkyEnemyTextures[0]);
+                enemy.AddComponent<AnimationComponent>(chunkyEnemyTextures, 0.85);
+            }
+            
+
             enemy.AddComponent<TagComponent>(EntityType::Enemy);
             enemy.AddComponent<HealthComponent>(1);
             entities.push_back(std::move(enemy));
@@ -181,7 +218,8 @@ void Game::CreateEntities()
         bullet.AddComponent<ColliderComponent>(0, 0, 5, 12, 14, 10);
         bullet.AddComponent<MovementComponent>(0, 0);
         bullet.AddComponent<BulletComponent>();
-        bullet.AddComponent<RenderComponent>(enemyBulletTexture);
+        bullet.AddComponent<RenderComponent>(enemyBulletTextures[0]);
+        bullet.AddComponent<AnimationComponent>(enemyBulletTextures, 0.05);
         bullet.AddComponent<TagComponent>(EntityType::EnemyBullet);
         bullet.isActive = false;
         entities.push_back(bullet);

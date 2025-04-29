@@ -52,7 +52,6 @@ private:
     static inline std::unordered_map<std::type_index, std::vector<void*>> componentPools;
     // Map each entity to the index of its component in the pool
     std::unordered_map<std::type_index, int> componentIndices;
-
     static inline int nextEntityID{0};
     int id; 
     

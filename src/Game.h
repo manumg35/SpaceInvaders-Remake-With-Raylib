@@ -1,7 +1,6 @@
 #pragma once
-#include "Components.h"
 #include "ECS.h"
-#include "Systems.h"
+#include "systems/AllSystems.h"
 #include "raylib.h"
 #include <memory>
 
@@ -39,12 +38,16 @@ private:
     RenderSystem renderSystem;
     GameManagerSystem gameManager;
     UISystem uiSystem;
+    AnimationSystem animationSystem;
+    LifeTimeSystem lifeTimeSystem;
 
     //TEXTURES
     Texture2D playerTexture;
     Texture2D playBulletTexture;
-    Texture2D enemyTexture;
-    Texture2D enemyBulletTexture;
+    Texture2D normEnemyTextures[2];
+    Texture2D coneEnemyTextures[2];
+    Texture2D chunkyEnemyTextures[2];
+    Texture2D enemyBulletTextures[2];
     
 
     void Update();

@@ -1,0 +1,12 @@
+#pragma once
+#include "AISystem.h"
+#include "AnimationSystem.h"
+#include "BulletSystem.h"
+#include "RenderSystem.h"
+#include "ColliderSystem.h"
+#include "GameManagerSystem.h"
+#include "InputSystem.h"
+#include "LifeTimeSystem.h"
+#include "MovementSystem.h"
+#include "PlayerControlSystem.h"
+#include "UISystem.h"
