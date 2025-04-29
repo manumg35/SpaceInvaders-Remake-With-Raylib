@@ -1,4 +1,8 @@
 *.exe
 *.dsym
 .vscode
+.vs
+out
 main
+CppProperties.json
+CMakeSettings.json

@@ -32,7 +32,8 @@ public:
 
     void CheckCollisions(std::vector<Entity>& entities, std::vector<CollisionEvent>& colEvents)
     {
-        for(int i = 0; i<entities.size(); i++)
+
+        for(size_t i = 0; i<entities.size(); i++)
         {
             if(!entities[i].isActive)
                 continue;
@@ -42,7 +43,7 @@ public:
                 continue;
 
             
-            for(int j = i+1; j <entities.size(); j++)
+            for(size_t j = i+1; j <entities.size(); j++)
             {
                 if(!entities[j].isActive)
                 continue;
@@ -53,7 +54,7 @@ public:
 
                 if(CheckCollisionRecs(colA->rect, colB->rect))
                 {
-                    colEvents.push_back({i, j});
+                    colEvents.push_back({static_cast<int>(i), static_cast<int>(j)});
                 }
             }
         }

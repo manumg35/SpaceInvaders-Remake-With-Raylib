@@ -20,7 +20,7 @@ void Game::Run()
         case GameStateType::Paused:
             if(IsKeyPressed(KEY_SPACE))
                 gameState = GameStateType::Playing;
-            Render(true);
+            Render();
             break;
 
         case GameStateType::Playing:
@@ -73,6 +73,8 @@ void Game:: Update()
     gameManager.Update(gameEvents, entities, gameData, gameState);
     lifeTimeSystem.Update(entities, deltaTime);
     
+    animationSystem.UpdateAnimation(entities, GetFrameTime());
+
     Render();
 }
 
@@ -83,8 +85,6 @@ void Game::Render(bool renderJustUI)
 
     if(!renderJustUI){
         //Render entities
-
-        animationSystem.UpdateAnimation(entities, GetFrameTime());
         renderSystem.Render(entities);
     }
     //Render UI
