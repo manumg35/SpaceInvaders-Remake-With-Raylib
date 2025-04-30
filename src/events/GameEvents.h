@@ -4,6 +4,7 @@ enum class GameEventType
 {
     PlayerHit,
     EnemyKilled,
+    WallHit,
 };
 
 struct GameEvent

@@ -73,6 +73,7 @@ void Game:: Update()
     gameManager.Update(gameEvents, entities, gameData, gameState);
     lifeTimeSystem.Update(entities, deltaTime);
     
+    //Update entities sprites
     animationSystem.UpdateAnimation(entities, GetFrameTime());
 
     Render();
@@ -224,4 +225,18 @@ void Game::CreateEntities()
         bullet.isActive = false;
         entities.push_back(bullet);
     }
+
+    //Create walls
+    Entity topWall;
+    topWall.AddComponent<TransformComponent>(-10, -10);
+    topWall.AddComponent<ColliderComponent>(-10, -10, screenWidth + 10, 10, 0, 0);
+    topWall.AddComponent<TagComponent>(EntityType::Wall);
+    entities.push_back(topWall);
+
+    Entity bottWall;
+    bottWall.AddComponent<TransformComponent>(-10, screenHeight);
+    bottWall.AddComponent<ColliderComponent>(-10, screenHeight, screenWidth + 10, 10, 0, 0);
+    bottWall.AddComponent<TagComponent>(EntityType::Wall);
+    entities.push_back(bottWall);
+
 }

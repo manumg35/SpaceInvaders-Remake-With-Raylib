@@ -10,22 +10,24 @@ class BulletSystem
 {
 public:
 
-    void Update(std::vector<Entity>& bullets, std::vector<ShootEvent>& shootEvents)
+    void Update(std::vector<Entity>& entities, std::vector<ShootEvent>& shootEvents)
     {
         //check if should spawn new bullets
         for(auto& shootEv: shootEvents)
         {
-            for(auto& bullet: bullets)
+            for(auto& bullet: entities)
             {
+                if(bullet.isActive)
+                    continue;
+
                 auto* bulComp = bullet.GetComponent<BulletComponent>();
-                auto* bulPos = bullet.GetComponent<TransformComponent>();
-                auto* bulMov = bullet.GetComponent<MovementComponent>();
                 auto* tag = bullet.GetComponent<TagComponent>();
 
                 if(!bulComp || tag->type != shootEv.bulletType)
                     continue;
-                if(bullet.isActive)
-                    continue;
+
+                auto* bulPos = bullet.GetComponent<TransformComponent>();
+                auto* bulMov = bullet.GetComponent<MovementComponent>();
 
                 bullet.isActive = true;
                 
@@ -38,7 +40,11 @@ public:
         shootEvents.clear();
 
         //check if bullet should be active
-        for (auto& bullet : bullets) {
+        /*for (auto& bullet : entities) {
+
+            if (!bullet.isActive)
+                continue;
+
             auto* bulPos = bullet.GetComponent<TransformComponent>();
             auto* bulComp = bullet.GetComponent<BulletComponent>();
             auto* bulMov = bullet.GetComponent<MovementComponent>();
@@ -50,8 +56,9 @@ public:
             {
                 bullet.isActive = false;
                 bulMov->velocity.y = 0;
+
             }
-        }
+        }*/
 
     }
 };

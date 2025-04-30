@@ -88,16 +88,6 @@ public:
             if(tagB->type == EntityType::EnemyBullet)
             {
                 b.isActive = false;
-                
-                //Check health
-                auto* health = a.GetComponent<HealthComponent>();
-                if(!health)
-                    return;
-
-                health->currentHealth--;
-                if(health->currentHealth<1)
-                    a.isActive = false;
-
                 gameEvents.push_back({GameEventType::PlayerHit, a});
             }
         }
@@ -116,6 +106,14 @@ public:
                 //AddScore Event
                 gameEvents.push_back({GameEventType::EnemyKilled, b});
             }
-        }                
+        }              
+        else if (tagA->type == EntityType::Wall)
+        {
+            if (tagB->type == EntityType::EnemyBullet || tagB->type == EntityType::PlayerBullet)
+            {
+                b.isActive = false;
+                gameEvents.push_back({ GameEventType::WallHit, b });
+            }
+        }
     }
 };

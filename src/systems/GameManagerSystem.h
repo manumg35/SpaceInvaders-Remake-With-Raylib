@@ -32,15 +32,39 @@ public:
                 gameData.nDeadEnemies++;
                 if(gameData.score>gameData.highScore)
                     gameData.highScore = gameData.score;
+
                 break;
             }
+
             case GameEventType::PlayerHit:
             {
-                gameData.playerHealth--;
-                if(gameData.playerHealth<1)
+                //Check health
+                auto* playerHealth = gameEvent.entity.GetComponent<HealthComponent>();
+                if (!playerHealth)
+                    return;
+
+                playerHealth->currentHealth--;
+                gameData.playerHealth = playerHealth->currentHealth;
+                if (playerHealth->currentHealth < 1)
+                {
+                    gameEvent.entity.isActive = false;
                     gameState = GameStateType::GameOver;
+                }
                 break;
             }
+
+            case GameEventType::WallHit:
+            {
+                Entity hit;
+                auto* hitPos = gameEvent.entity.GetComponent<TransformComponent>();
+                Texture2D hitTexture = LoadTexture("textures/bulletHit.png");
+                hit.AddComponent<RenderComponent>(hitTexture);
+                hit.AddComponent<LifetimeComponent>(0.1);
+                hit.AddComponent<TransformComponent>(hitPos->position.x, hitPos->position.y);
+                entities.push_back(hit);
+                break;
+            }
+
             default:
                 break;
             }
@@ -49,7 +73,7 @@ public:
         gameEvents.clear();
     }
 
-    void SearchExplosion()
+    void GetExplosion()
     {
         
     }

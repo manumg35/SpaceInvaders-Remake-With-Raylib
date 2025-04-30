@@ -18,8 +18,11 @@ public:
                 continue;
 
             lifetime->elapsedTime+=deltaTime;
-            if(lifetime->elapsedTime > lifetime->lifeTime)
+            if (lifetime->elapsedTime > lifetime->lifeTime)
+            {
                 entity.isActive = false;
+                //entities.
+            }
 
         }
     }
