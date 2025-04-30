@@ -8,19 +8,23 @@ on:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake g++ git libasound2-dev libpulse-dev libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev
+        - name: Install dependencies
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y cmake g++ git libasound2-dev libpulse-dev \
+            libx11-dev libxcursor-dev libxinerama-dev libxrandr-dev libxi-dev \
+            libgl1-mesa-dev  # <-- this one is key
 
-      - name: Configure project
-        run: cmake -S . -B build
+        - name: Configure project
+          run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build project
-        run: cmake --build build
+        - name: Build project
+          run: cmake --build build
 
   build-windows:
     runs-on: windows-latest
