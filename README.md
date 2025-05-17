@@ -1,6 +1,6 @@
 ﻿# 🕹️ Space Invaders Remake using raylib
 
-A personal project recreating the arcade classic **Space Invaders**, built from scratch using **C++** and **raylib**. This game features an Entity-Component-System (ECS) architecture, simple enemy AI, shooting mechanics, collision detection, and a responsive UI.
+A personal project recreating the arcade classic **Space Invaders**, built from scratch using **C++** and **raylib**. This game features an Entity-Component-System (ECS) architecture.
 
 ---
 
@@ -17,8 +17,8 @@ A personal project recreating the arcade classic **Space Invaders**, built from 
 
 - ECS architecture for modularity and flexibility
 - Player and enemy movement with shooting logic
-- Collision detection with simple physics
-- Score tracking and UI rendering
+- Collision detection
+- Score tracking and UI 
 - Game state management (playing, paused, game over)
 - Cross-platform build support (Windows & Linux)
 

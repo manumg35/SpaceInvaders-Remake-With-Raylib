@@ -33,6 +33,13 @@ void Game::Run()
             Render(true);
             break;
 
+        case GameStateType::NewWave:
+            if (IsKeyPressed(KEY_SPACE))
+                //TODO GENERATE NEW WAVE INSTEAD OF RESTARTING
+                gameState = GameStateType::Playing;
+            Render(true);
+            break;
+
         case GameStateType::Restarting:
             Restart();
             break;
@@ -55,7 +62,7 @@ void Game:: Update()
     float deltaTime = GetFrameTime();    
 
     //AI
-    aiSystem.Update(entities, shootEvents, gameData);
+    aiSystem.Update(entities, shootEvents, gameData, deltaTime);
 
     //MANAGE BULLETS
     bulletSystem.Update(entities, shootEvents);
@@ -194,6 +201,8 @@ void Game::CreateEntities()
             enemy.AddComponent<TagComponent>(EntityType::Enemy);
             enemy.AddComponent<HealthComponent>(1);
             entities.push_back(std::move(enemy));
+            gameData.totalEnemies++;
+
         }
     }
 

@@ -8,6 +8,9 @@ struct AIComponent : public Component
     int scoreWhenKilled;
     EnemyType enemyType;
     float currentSpeed{1.f};
+    inline static float freezedTimer{ 0.f };
+    float freezeTime{ 0.25 };
     int xDir{1};
-    bool isActive{true};
+    bool isActive{ true };
+    inline static bool freeze{ false };
 };

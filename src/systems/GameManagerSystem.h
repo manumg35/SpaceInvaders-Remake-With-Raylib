@@ -19,6 +19,8 @@ public:
             {
             case GameEventType::EnemyKilled:
             {
+
+                //TODO - do not load a texture per explosion + do not create an entity each time (reuse)
                 Entity explosion;
                 auto* enemyKilledPos = gameEvent.entity.GetComponent<TransformComponent>();
                 Texture2D deathTexture = LoadTexture("textures/enemyDeath.png");
@@ -28,10 +30,14 @@ public:
                 entities.push_back(explosion);
 
                 auto* ai = gameEvent.entity.GetComponent<AIComponent>();
+                ai->freeze = true;
                 gameData.score+=ai->scoreWhenKilled;
                 gameData.nDeadEnemies++;
                 if(gameData.score>gameData.highScore)
                     gameData.highScore = gameData.score;
+
+                if (gameData.nDeadEnemies == gameData.totalEnemies)
+                    gameState = GameStateType::NewWave;
 
                 break;
             }
